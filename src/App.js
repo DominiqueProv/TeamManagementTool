@@ -3,13 +3,7 @@ import { useQuery } from 'graphql-hooks';
 import styled from 'styled-components';
 import { ReactComponent as Logo } from './assets/logo.svg';
 import { saveToLocalStorage } from './utils/helper-localStorage';
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  useHistory,
-  Link,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import Teamlist from './pages/Teamlist';
 
 const INIT_QUERY = `query InitLoad {
@@ -37,7 +31,6 @@ const App = () => {
       limit: 20,
     },
   });
-  const history = useHistory();
   const [teamList, setTeamList] = useState([]);
   const [textArea, setTextArea] = useState('');
   const [input, setInput] = useState('');
@@ -72,7 +65,7 @@ const App = () => {
       message_html: textArea,
       from_name: input,
       reply_to: email,
-      link_team: 'https://jolly-einstein-6e0e15.netlify.app/team',
+      link_team: 'http://localhost:3000/team',
     });
     setEmail('');
     setInput('');
@@ -184,7 +177,7 @@ const App = () => {
             </AppWrapper>
           </Route>
           <Route path="/team" exact>
-            <Teamlist history={history} />
+            <Teamlist />
           </Route>
         </Switch>
       </MainWrapper>
