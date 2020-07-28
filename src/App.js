@@ -68,12 +68,16 @@ const App = () => {
     saveToLocalStorage('textarea', textArea);
     saveToLocalStorage('email', email);
     const templateId = 'template_GTIg0YTZ';
-
     sendFeedback(templateId, {
       message_html: textArea,
       from_name: input,
       reply_to: email,
+      link_team: 'https://jolly-einstein-6e0e15.netlify.app/team',
     });
+    setEmail('');
+    setInput('');
+    setTextArea('');
+    setTeamList([]);
   };
 
   const sendFeedback = (templateId, data) => {
@@ -90,7 +94,6 @@ const App = () => {
       );
   };
 
-  console.log(data.allTeammembers.length);
   return (
     <Router>
       <MainWrapper>
