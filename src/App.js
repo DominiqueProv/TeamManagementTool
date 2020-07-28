@@ -3,6 +3,15 @@ import { useQuery } from 'graphql-hooks';
 import styled from 'styled-components';
 import { ReactComponent as Logo } from './assets/logo.svg';
 import { TeamProvider } from './context/team.context';
+import { saveToLocalStorage } from './utils/helper-localStorage';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  useHistory,
+  Link,
+} from 'react-router-dom';
+import Teamlist from './pages/Teamlist';
 
 const INIT_QUERY = `query InitLoad {
   allTeammembers {
@@ -24,12 +33,15 @@ const INIT_QUERY = `query InitLoad {
 }`;
 
 function App() {
-  const [teamList, setTeamList] = useState([]);
   const { loading, error, data } = useQuery(INIT_QUERY, {
     variables: {
       limit: 20,
     },
   });
+  const history = useHistory();
+  const [teamList, setTeamList] = useState([]);
+  const [textArea, setTextArea] = useState('');
+  const [input, setInput] = useState('');
 
   if (loading) return 'Loading...';
   if (error) return 'Something Bad Happened';
@@ -37,61 +49,112 @@ function App() {
   const handleSelect = (id, name, img, title, contact, index) => {
     setTeamList([...teamList, { id, name, img, title, contact }]);
   };
+
+  const handleTextArea = (ev) => {
+    setTextArea(ev.target.value);
+  };
+
+  const handleInput = (ev) => {
+    setInput(ev.target.value);
+  };
+
+  const handleSend = (ev, teamList) => {
+    // ev.preventDefault();
+    saveToLocalStorage('list', teamList);
+    saveToLocalStorage('input', input);
+    saveToLocalStorage('textarea', textArea);
+  };
+
   console.log(data.allTeammembers.length);
   return (
-    <MainWrapper>
-      <Header>
-        <Logo width="62px" />
-      </Header>
-      <HeroTitle>
-        <h1>Team management tool</h1>
-      </HeroTitle>
-      <AppWrapper>
-        <TeamProvider>
-          <LeftColumn>
-            <h2>Your customized team</h2>
-            <TeamWrapper>
-              {teamList.map((item) => (
-                <TeamList key={item.name}>
-                  <div>
-                    <img src={item.img} alt="employe" width="30px" />
-                  </div>
-                  <h4>{item.name}</h4>
-                </TeamList>
-              ))}
-              <SelectButton disabled={teamList.length === 0}>
-                Send your request
-              </SelectButton>
-            </TeamWrapper>
-          </LeftColumn>
-          <RightColumn>
-            {data.allTeammembers.map((employee, index) => (
-              <Card key={employee.employee.id}>
-                <ImgWrapper>
-                  <img src={employee.employee.responsiveImage.src} alt="img" />
-                </ImgWrapper>
-                <h2>{employee.employeeName}</h2>
-                <h3>{employee.employeeTitle}</h3>
-                <a href={`mailto:${employee.contact}`}>{employee.contact}</a>
-                <p>{employee.employeeDesc}</p>
-                <SelectButton
-                  onClick={() => {
-                    let id = employee.employee.id;
-                    let name = employee.employeeName;
-                    let img = employee.employee.responsiveImage.src;
-                    let contact = employee.contact;
-                    let title = employee.employeeTitle;
-                    handleSelect(id, name, img, title, contact, index);
-                  }}
-                >
-                  Add to the team
-                </SelectButton>
-              </Card>
-            ))}
-          </RightColumn>
-        </TeamProvider>
-      </AppWrapper>
-    </MainWrapper>
+    <Router>
+      <MainWrapper>
+        <Header>
+          <Logo width="62px" />
+        </Header>
+        <HeroTitle>
+          <h1>Team management tool</h1>
+        </HeroTitle>
+        <Switch>
+          <Route path="/" exact>
+            <AppWrapper>
+              <TeamProvider>
+                <LeftColumn>
+                  <h2>Add members to your team</h2>
+                  <TeamWrapper>
+                    {teamList.map((item) => (
+                      <TeamList key={item.name}>
+                        <div>
+                          <img src={item.img} alt="employe" width="30px" />
+                        </div>
+                        <h4>{item.name}</h4>
+                      </TeamList>
+                    ))}
+                    <Form id="userform">
+                      <p>Name</p>
+                      <input
+                        required
+                        type="text"
+                        name="username"
+                        value={input}
+                        onChange={(ev) => handleInput(ev)}
+                      />
+                      <textarea
+                        value={textArea}
+                        onChange={(ev) => handleTextArea(ev)}
+                        placeholder="Remember, be nice!"
+                      ></textarea>
+                    </Form>
+                    <Link to="/team">
+                      <SelectButton
+                        onClick={(ev) => handleSend(ev, teamList)}
+                        disabled={teamList.length === 0}
+                      >
+                        Send your request
+                      </SelectButton>
+                    </Link>
+                  </TeamWrapper>
+                </LeftColumn>
+                <RightColumn>
+                  {data.allTeammembers.map((employee, index) => (
+                    <Card key={employee.employee.id}>
+                      <ImgWrapper>
+                        <img
+                          src={employee.employee.responsiveImage.src}
+                          alt="img"
+                        />
+                      </ImgWrapper>
+                      <h2>{employee.employeeName}</h2>
+                      <h3>{employee.employeeTitle}</h3>
+                      <a href={`mailto:${employee.contact}`}>
+                        {employee.contact}
+                      </a>
+                      <p>{employee.employeeDesc}</p>
+
+                      <SelectButton
+                        onClick={() => {
+                          let id = employee.employee.id;
+                          let name = employee.employeeName;
+                          let img = employee.employee.responsiveImage.src;
+                          let contact = employee.contact;
+                          let title = employee.employeeTitle;
+                          handleSelect(id, name, img, title, contact, index);
+                        }}
+                      >
+                        Add to the team
+                      </SelectButton>
+                    </Card>
+                  ))}
+                </RightColumn>
+              </TeamProvider>
+            </AppWrapper>
+          </Route>
+          <Route path="/team" exact>
+            <Teamlist history={history} />
+          </Route>
+        </Switch>
+      </MainWrapper>
+    </Router>
   );
 }
 
@@ -227,6 +290,29 @@ const SelectButton = styled.button`
   &:disabled {
     background-color: gray;
     cursor: not-allowed;
+  }
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  padding: 30px 0;
+  input {
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    border-radius: 3px;
+    outline: none;
+  }
+  textarea {
+    padding: 10px;
+    height: 200px;
+    font-size: 1rem;
+    border-radius: 3px;
+    outline: none;
+  }
+  p {
+    padding-bottom: 5px;
   }
 `;
 
