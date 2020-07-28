@@ -4,7 +4,7 @@ import { getFromLocalStorage } from '../utils/helper-localStorage';
 import { Link } from 'react-router-dom';
 
 const Teamlist = () => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState();
   useEffect(() => {
     setData(getFromLocalStorage('list'));
   }, []);
@@ -13,23 +13,24 @@ const Teamlist = () => {
     <div>
       <TeamHeader>
         <Link to="/">
-          <Arrow onClick={() => localStorage.clear()}>
+          <Arrow>
             <h2>← Back</h2>
           </Arrow>
         </Link>
         <h1>Your team</h1>
       </TeamHeader>
       <TeamList>
-        {data.map((item) => (
-          <Card key={item.id}>
-            <ImgWrapper>
-              <img src={item.img} alt="img" />
-            </ImgWrapper>
-            <h2>{item.name}</h2>
-            <h3>{item.title}</h3>
-            <a href={`mailto:${item.contact}`}>{item.contact}</a>
-          </Card>
-        ))}
+        {data &&
+          data.map((item) => (
+            <Card key={item.id}>
+              <ImgWrapper>
+                <img src={item.img} alt="img" />
+              </ImgWrapper>
+              <h2>{item.name}</h2>
+              <h3>{item.title}</h3>
+              <a href={`mailto:${item.contact}`}>{item.contact}</a>
+            </Card>
+          ))}
       </TeamList>
     </div>
   );
