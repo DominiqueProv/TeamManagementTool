@@ -65,7 +65,7 @@ const App = () => {
       message_html: textArea,
       from_name: input,
       reply_to: email,
-      link_team: 'http://localhost:3000/team',
+      link_team: 'https://jolly-einstein-6e0e15.netlify.app/team',
     });
     setEmail('');
     setInput('');
