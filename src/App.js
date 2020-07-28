@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery } from 'graphql-hooks';
 import styled from 'styled-components';
 import { ReactComponent as Logo } from './assets/logo.svg';
-import { TeamProvider } from './context/team.context';
 import { saveToLocalStorage } from './utils/helper-localStorage';
 import {
   BrowserRouter as Router,
@@ -32,7 +31,7 @@ const INIT_QUERY = `query InitLoad {
   }
 }`;
 
-function App() {
+const App = () => {
   const { loading, error, data } = useQuery(INIT_QUERY, {
     variables: {
       limit: 20,
@@ -42,6 +41,7 @@ function App() {
   const [teamList, setTeamList] = useState([]);
   const [textArea, setTextArea] = useState('');
   const [input, setInput] = useState('');
+  const [email, setEmail] = useState('');
 
   if (loading) return 'Loading...';
   if (error) return 'Something Bad Happened';
@@ -58,11 +58,36 @@ function App() {
     setInput(ev.target.value);
   };
 
+  const handleEmail = (ev) => {
+    setEmail(ev.target.value);
+  };
+
   const handleSend = (ev, teamList) => {
-    // ev.preventDefault();
     saveToLocalStorage('list', teamList);
     saveToLocalStorage('input', input);
     saveToLocalStorage('textarea', textArea);
+    saveToLocalStorage('email', email);
+    const templateId = 'template_GTIg0YTZ';
+
+    sendFeedback(templateId, {
+      message_html: textArea,
+      from_name: input,
+      reply_to: email,
+    });
+  };
+
+  const sendFeedback = (templateId, data) => {
+    window.emailjs
+      .send('gmail', templateId, data)
+      .then((res) => {
+        console.log('Email successfully sent!');
+      })
+      .catch((err) =>
+        console.error(
+          'Oh well, you failed. Here some thoughts on the error that occured:',
+          err
+        )
+      );
   };
 
   console.log(data.allTeammembers.length);
@@ -78,75 +103,81 @@ function App() {
         <Switch>
           <Route path="/" exact>
             <AppWrapper>
-              <TeamProvider>
-                <LeftColumn>
-                  <h2>Add members to your team</h2>
-                  <TeamWrapper>
-                    {teamList.map((item) => (
-                      <TeamList key={item.name}>
-                        <div>
-                          <img src={item.img} alt="employe" width="30px" />
-                        </div>
-                        <h4>{item.name}</h4>
-                      </TeamList>
-                    ))}
-                    <Form id="userform">
-                      <p>Name</p>
-                      <input
-                        required
-                        type="text"
-                        name="username"
-                        value={input}
-                        onChange={(ev) => handleInput(ev)}
-                      />
-                      <textarea
-                        value={textArea}
-                        onChange={(ev) => handleTextArea(ev)}
-                        placeholder="Remember, be nice!"
-                      ></textarea>
-                    </Form>
-                    <Link to="/team">
-                      <SelectButton
-                        onClick={(ev) => handleSend(ev, teamList)}
-                        disabled={teamList.length === 0}
-                      >
-                        Send your request
-                      </SelectButton>
-                    </Link>
-                  </TeamWrapper>
-                </LeftColumn>
-                <RightColumn>
-                  {data.allTeammembers.map((employee, index) => (
-                    <Card key={employee.employee.id}>
-                      <ImgWrapper>
-                        <img
-                          src={employee.employee.responsiveImage.src}
-                          alt="img"
-                        />
-                      </ImgWrapper>
-                      <h2>{employee.employeeName}</h2>
-                      <h3>{employee.employeeTitle}</h3>
-                      <a href={`mailto:${employee.contact}`}>
-                        {employee.contact}
-                      </a>
-                      <p>{employee.employeeDesc}</p>
-
-                      <SelectButton
-                        onClick={() => {
-                          let id = employee.employee.id;
-                          let name = employee.employeeName;
-                          let img = employee.employee.responsiveImage.src;
-                          let contact = employee.contact;
-                          let title = employee.employeeTitle;
-                          handleSelect(id, name, img, title, contact, index);
-                        }}
-                      >
-                        Add to the team
-                      </SelectButton>
-                    </Card>
+              <LeftColumn>
+                <h2>Add members to your team</h2>
+                <TeamWrapper>
+                  {teamList.map((item) => (
+                    <TeamList key={item.name}>
+                      <div>
+                        <img src={item.img} alt="employe" width="30px" />
+                      </div>
+                      <h4>{item.name}</h4>
+                    </TeamList>
                   ))}
-                </RightColumn>
-              </TeamProvider>
+                  <Form id="userform">
+                    <p>Name</p>
+                    <input
+                      required
+                      type="text"
+                      name="username"
+                      value={input}
+                      onChange={(ev) => handleInput(ev)}
+                    />
+                    <p>Email</p>
+                    <input
+                      required
+                      type="text"
+                      name="useremail"
+                      value={email}
+                      onChange={(ev) => handleEmail(ev)}
+                    />
+                    <textarea
+                      value={textArea}
+                      onChange={(ev) => handleTextArea(ev)}
+                      placeholder="Remember, be nice!"
+                    ></textarea>
+                  </Form>
+                  <Link to="/team">
+                    <SelectButton
+                      onClick={(ev) => handleSend(ev, teamList)}
+                      disabled={teamList.length === 0}
+                    >
+                      Send your request
+                    </SelectButton>
+                  </Link>
+                </TeamWrapper>
+              </LeftColumn>
+              <RightColumn>
+                {data.allTeammembers.map((employee, index) => (
+                  <Card key={employee.employee.id}>
+                    <ImgWrapper>
+                      <img
+                        src={employee.employee.responsiveImage.src}
+                        alt="img"
+                      />
+                    </ImgWrapper>
+                    <h2>{employee.employeeName}</h2>
+                    <h3>{employee.employeeTitle}</h3>
+                    <a href={`mailto:${employee.contact}`}>
+                      {employee.contact}
+                    </a>
+                    <p>{employee.employeeDesc}</p>
+
+                    <SelectButton
+                      onClick={() => {
+                        let id = employee.employee.id;
+                        let name = employee.employeeName;
+                        let img = employee.employee.responsiveImage.src;
+                        let contact = employee.contact;
+                        let title = employee.employeeTitle;
+                        handleSelect(id, name, img, title, contact, index);
+                      }}
+                    >
+                      Add to the team
+                    </SelectButton>
+                  </Card>
+                ))}
+              </RightColumn>
             </AppWrapper>
           </Route>
           <Route path="/team" exact>
@@ -156,7 +187,7 @@ function App() {
       </MainWrapper>
     </Router>
   );
-}
+};
 
 const MainWrapper = styled.div`
   padding: 0px;
