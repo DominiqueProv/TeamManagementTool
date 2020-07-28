@@ -30,13 +30,14 @@ function App() {
       limit: 20,
     },
   });
+
   if (loading) return 'Loading...';
   if (error) return 'Something Bad Happened';
 
-  const handleSelect = (id, name, img, title, contact) => {
+  const handleSelect = (id, name, img, title, contact, index) => {
     setTeamList([...teamList, { id, name, img, title, contact }]);
   };
-
+  console.log(data.allTeammembers.length);
   return (
     <MainWrapper>
       <Header>
@@ -49,16 +50,22 @@ function App() {
         <TeamProvider>
           <LeftColumn>
             <h2>Your customized team</h2>
-            <div>
+            <TeamWrapper>
               {teamList.map((item) => (
-                <div key={item.id}>
-                  <h2>{item.name}</h2>
-                </div>
+                <TeamList key={item.name}>
+                  <div>
+                    <img src={item.img} alt="employe" width="30px" />
+                  </div>
+                  <h4>{item.name}</h4>
+                </TeamList>
               ))}
-            </div>
+              <SelectButton disabled={teamList.length === 0}>
+                Send your request
+              </SelectButton>
+            </TeamWrapper>
           </LeftColumn>
           <RightColumn>
-            {data.allTeammembers.map((employee) => (
+            {data.allTeammembers.map((employee, index) => (
               <Card key={employee.employee.id}>
                 <ImgWrapper>
                   <img src={employee.employee.responsiveImage.src} alt="img" />
@@ -74,7 +81,7 @@ function App() {
                     let img = employee.employee.responsiveImage.src;
                     let contact = employee.contact;
                     let title = employee.employeeTitle;
-                    handleSelect(id, name, img, title, contact);
+                    handleSelect(id, name, img, title, contact, index);
                   }}
                 >
                   Add to the team
@@ -94,25 +101,46 @@ const MainWrapper = styled.div`
   box-sizing: border-box;
 `;
 
+const TeamWrapper = styled.div``;
+
+const TeamList = styled.div`
+  background-color: #efefef;
+  border-radius: 3px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  div {
+    height: 30px;
+    overflow: hidden;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+
+  h4 {
+    font-weight: 400;
+  }
+`;
+
 const Header = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: center;
   width: 100vw;
-  padding: 50px 50px;
+  padding: 30px 30px;
   background-color: #fff;
 `;
 
 const HeroTitle = styled.div`
-  padding: 50px;
+  padding: 30px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
   background: #000
     url('https://www.datocms-assets.com/7718/1545236284-signifly-trine-cropped.jpg?auto=compress&w=1680&dpr=2&q=70');
-  height: 200px;
   background-position: center;
   background-size: cover;
+  height: 200px;
   h1 {
     color: white;
     font-size: 3rem;
@@ -127,7 +155,14 @@ const AppWrapper = styled.div`
 
 const LeftColumn = styled.div`
   display: flex;
+  flex-direction: column;
   width: 400px;
+  padding-right: 30px;
+  h2 {
+    padding-bottom: 30px;
+    text-transform: uppercase;
+    font-size: 1.2em;
+  }
 `;
 
 const RightColumn = styled.div`
@@ -175,13 +210,15 @@ const ImgWrapper = styled.div`
 const SelectButton = styled.button`
   text-transform: uppercase;
   color: white;
-  font-weight: 700;
+  font-weight: 400;
   padding: 10px 25px;
   border: none;
   border-radius: 3px;
   background: #4f00cf;
   transition: all 0.2s ease-in;
   width: 150px;
+  outline: none;
+  cursor: pointer;
 
   &:hover {
     background: #7e57ea;
